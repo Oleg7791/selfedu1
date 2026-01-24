@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+<p>{{ menu }}</p>
+<h1>{{ title|capfirst }}</h1>
+<ul>
+    {% for p in posts %}
+    {% if p.is_published %}
+    <li>
+        <h2>{{ p.title }}</h2>
+        <p>{{ p.content }}</p>
+        {% if not forloop.last %}
+        <hr align="left" width="300" color="green" size="3">
+        <hr align="left" width="300" color="red" size="3">
+        <hr align="left" width="300" color="blue" size="3">
+        {% endif %}
+    </li>
+    {% endif %}
+    {% endfor %}
+</ul>
+</body>
+</html>
