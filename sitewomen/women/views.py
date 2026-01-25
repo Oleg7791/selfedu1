@@ -4,7 +4,12 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
-menu = ['О сайте', "Добавить статью", "Обратная связь", "Войти"]
+menu = [
+    {'title':'О сайте','url_name':'about'},
+    {'title':"Добавить статью",'url_name':'add_page'},
+    {'title':"Обратная связь",'url_name':'contact'},
+    {'title':"Войти",'url_name':'login'}
+]
 
 data_db = [
     {'id': 1, 'title': 'Анджелина Джоли', 'content': 'Биография Анджелины Джоли', 'is_published': True},
@@ -28,21 +33,17 @@ def index(request):  # обязательный параметр request
 def about(request):
     return render(request, 'women/about.html', {'title': 'О сайте'})
 
+def addpage(request):
+    return HttpResponse("Добавление статьи")
 
-def categories(request, cat_id):
-    return HttpResponse(f"<h1>Статьи по категориям</h1><p>id: {cat_id}</p>")
+def contact(request):
+    return HttpResponse("Обратная связь")
 
+def login(request):
+    return HttpResponse("Авторизоваться")
 
-def categories_by_slug(request, cat_slug):
-    print(request.GET)
-    return HttpResponse(f"<h1>Статьи по категориям</h1><p>slug: {cat_slug}</p>")
-
-
-def archive(request, year):
-    if year > 2027:
-        uri = reverse('cats', args=('music',))
-        return redirect(uri)
-    return HttpResponse(f"<h1>Архив по годам</h1><p>{year}</p>")
+def show_post(request, post_id):
+    return HttpResponse(f"Отображение статьи с id={post_id}")
 
 
 def page_not_found(request, exception):
