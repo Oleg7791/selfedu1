@@ -1,4 +1,3 @@
-from django.urls import reverse
 from django.db import models
 
 class PublishedManager(models.Manager):
@@ -23,10 +22,8 @@ class Women(models.Model):
     time_create = models.DateTimeField(auto_now_add=True)
     time_update = models.DateTimeField(auto_now=True)
     is_published = models.BooleanField(choices=Status.choices, default=Status.DRAFT)
-    # добавляем атрибут для связи первичного класса Category с вторичным классом Women
-    cat = models.ForeignKey('Category',on_delete=models.CASCADE,related_name='posts')
 
-    objects = models.Manager()  # стандартный менеджер записи
+    objects = models.Manager()
     published = PublishedManager() # создание нового менеджера
 
     def __str__(self):
@@ -37,18 +34,3 @@ class Women(models.Model):
         indexes = [
             models.Index(fields=['-time_create'])
         ]
-
-class Category(models.Model):
-    """Определяем ещё одну модель для категорий"""
-    name = models.CharField(max_length=100, db_index=True)
-    slug = models.SlugField(max_length=255, db_index=True, unique=True)
-
-    def __str__(self):
-        """нужен чтобы при выводе мы видели понятную информацию
-        в нашем случае будем возвращать название категории"""
-        return self.name
-
-    def get_absolute_url(self):
-        """формирует полноценный урл адрес в list_categories.html,
-        пришлось импортировать from django.urls import reverse"""
-        return reverse('category',kwargs={'cat_slug':self.slug})
