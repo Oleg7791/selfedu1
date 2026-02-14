@@ -13,5 +13,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('login/', views.login, name='login'),
     path('post/<slug:post_slug>/', views.show_post, name='post'),
-    path('category/<slug:cat_slug>/', views.show_category, name='category')
+    path('category/<slug:cat_slug>/', views.show_category, name='category'),
+    # маршрут для отображения тэгов
+    path('tag/<slug:tag_slug>/', views.show_tag_postlist, name='tag')
 ]

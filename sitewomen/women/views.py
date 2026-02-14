@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
-from .models import Women, Category
+from .models import Women, Category, TagPost
 
 menu = [
     {'title':'О сайте','url_name':'about'},
@@ -63,11 +63,11 @@ def login(request):
     return HttpResponse("Авторизоваться")
 
 def show_category(request,cat_slug):
-    """функция отображения категорий"""
-    category = get_object_or_404(Category,slug=cat_slug)
+    category = get_object_or_404(Category, slug=cat_slug)#переменная с помощью которой будем отбирать катнгорию
     posts = Women.published.filter(cat_id=category.pk)
+
     data = {
-        'title': f"Рубрика {category.name}",
+        'title': f"Рубрика: {category.name}",
         'menu': menu,
         'posts': posts,
         "cat_selected": category.pk,
@@ -76,3 +76,19 @@ def show_category(request,cat_slug):
 
 def page_not_found(request, exception):
     return HttpResponseNotFound("<h1>Страница не найдена</h1>")
+
+def show_tag_postlist(request, tag_slug):
+    """функция отображения постов по тэгам"""
+    tag = get_object_or_404(TagPost, slug=tag_slug) # читаем запись из таблицы TagPost
+    # берём все статьи которые связаны с этим тэгом(через модель Women берём связку related_name='tags'
+    posts = tag.tags.filter(is_published=Women.Status.PUBLISHED)
+
+    data = {
+        'title' : f'Тег: { tag.tag }',
+        'menu' : menu,
+        'posts': posts,
+        'cat_selected': None,
+    }
+
+    return render(request, 'women/index.html', context=data)
+    # после добавим шаблонный тег в women_tags.py
