@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.fields import CharField
 from django.urls import reverse
 
 class PublishedManager(models.Manager):
@@ -27,6 +28,12 @@ class Women(models.Model):
     cat = models.ForeignKey("Category", on_delete=models.PROTECT, related_name='posts')
     # создаем атрибут для связи Many to Many
     tags = models.ManyToManyField('TagPost', blank=True, related_name='tags')
+    # создаем атрибут для связи One to One (будет связывать женщин с их мужьями
+    # параметр on_delete=models.SET_NULL отвечает если удалить мужа то значение примет Null,
+    # blank=True - позволяет поле оставлять пустым, related_name='wuman'- атрибут для обратного связывания
+    husband = models.OneToOneField('Husband', on_delete=models.SET_NULL,
+                                   null=True, blank=True, related_name='wuman')
+
 
     objects = models.Manager()
     published = PublishedManager() # создание нового менеджера
@@ -75,3 +82,11 @@ class TagPost(models.Model):
         который будет возвращать тот или иной адрес для конкретного тэга"""
         return reverse('tag',kwargs={'tag_slug':self.slug})
 
+class Husband(models.Model):
+    """создаем модель МУЖ на ней будем изучать связь One to One"""
+    name = models.CharField(max_length=100)
+    age = models.IntegerField(null=True)
+
+    def __str__(self):
+        """метод будет возвращать имя name при обращении к модели"""
+        return self.name
