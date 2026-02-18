@@ -13,18 +13,11 @@ menu = [
     {'title':"Войти",'url_name':'login'}
 ]
 
-data_db = [
-    {'id': 1, 'title': 'Анджелина Джоли', 'content': '''<h1>Анджелина Джоли</h1> (англ. Angelina Jolie[7], при рождении Войт (англ. Voight), ранее Джоли Питт (англ. Jolie Pitt); род. 4 июня 1975, Лос-Анджелес, Калифорния, США) — американская актриса кино, телевидения и озвучивания, кинорежиссёр, сценаристка, продюсер,  фотомодель, посол доброй воли ООН.
-    Обладательница премии «Оскар», трёх премий «Золотой глобус» (первая актриса в истории, три года подряд выигравшая премию) и двух «Премий Гильдии киноактёров США».''',
-     'is_published': True},
-    {'id': 2, 'title': 'Марго Робби', 'content': 'Биография Марго Робби', 'is_published': False},
-    {'id': 2, 'title': 'Марго Робби', 'content': 'Биография Марго Робби', 'is_published': False},
-    {'id': 3, 'title': 'Джулия Робертс', 'content': 'Биография Джулия Робертс', 'is_published': True},
-]
-
 def index(request):  # обязательный параметр request
 
-    posts = Women.published.all()
+    posts = Women.published.all().select_related('cat')# добавляем select_related('cat')
+    # для использования "жадной" загрузки чтобы не было дублирующих запросов,
+    # "cat" это атрибут связывающий ForeignKey в модели Women
 
     data = {
         'title': "Главная страница",
@@ -64,7 +57,10 @@ def login(request):
 
 def show_category(request,cat_slug):
     category = get_object_or_404(Category, slug=cat_slug)#переменная с помощью которой будем отбирать катнгорию
-    posts = Women.published.filter(cat_id=category.pk)
+    posts = Women.published.filter(cat_id=category.pk).select_related("cat")# добавляем select_related('cat')
+    # для использования "жадной" загрузки чтобы не было дублирующих запросов,
+    # "cat" это атрибут связывающий ForeignKey в модели Women
+
 
     data = {
         'title': f"Рубрика: {category.name}",
@@ -81,7 +77,10 @@ def show_tag_postlist(request, tag_slug):
     """функция отображения постов по тэгам"""
     tag = get_object_or_404(TagPost, slug=tag_slug) # читаем запись из таблицы TagPost
     # берём все статьи которые связаны с этим тэгом(через модель Women берём связку related_name='tags'
-    posts = tag.tags.filter(is_published=Women.Status.PUBLISHED)
+    posts = tag.tags.filter(is_published=Women.Status.PUBLISHED).select_related('cat')# добавляем select_related('cat')
+    # для использования "жадной" загрузки чтобы не было дублирующих запросов,
+    # "cat" это атрибут связывающий ForeignKey в модели Women
+
 
     data = {
         'title' : f'Тег: { tag.tag }',

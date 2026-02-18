@@ -86,6 +86,7 @@ class Husband(models.Model):
     """создаем модель МУЖ на ней будем изучать связь One to One"""
     name = models.CharField(max_length=100)
     age = models.IntegerField(null=True)
+    m_count = models.IntegerField(blank=True, default=0)
 
     def __str__(self):
         """метод будет возвращать имя name при обращении к модели"""
