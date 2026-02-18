@@ -42,6 +42,8 @@ class Women(models.Model):
         return self.title
 
     class Meta:
+        verbose_name = "Известные женщины" # Редактируем меняем название в админ панели
+        verbose_name_plural = "Известные женщины"# тоже но чтобы и во множественном числе
         ordering = ['-time_create']
         indexes = [
             models.Index(fields=['-time_create'])

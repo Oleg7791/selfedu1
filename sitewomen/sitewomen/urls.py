@@ -28,3 +28,6 @@ urlpatterns = [
 ]
 
 handler404 = page_not_found
+
+admin.site.site_header = "Панель администрирования"# этой командой можем менять название панели в адм
+admin.site.index_title = "Известные женщины мира"# тоже что и выше
