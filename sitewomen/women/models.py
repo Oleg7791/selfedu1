@@ -36,7 +36,7 @@ class Women(models.Model):
     husband = models.OneToOneField('Husband', on_delete=models.SET_NULL,
                                    null=True, blank=True, related_name='wuman', verbose_name='Муж')
 
-    objects = models.Manager()
+    objects = models.Manager() # стандартный менеджер
     published = PublishedManager()  # создание нового менеджера
 
     def __str__(self):
