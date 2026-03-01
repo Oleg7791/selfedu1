@@ -1,7 +1,18 @@
 from django.db import models
 from django.db.models.fields import CharField
+from django.template.defaultfilters import slugify
 from django.urls import reverse
 
+def translit_to_eng(s: str):
+    """специальная функция Костыль для преобразования латиницы в кириллицу
+    используется для вывода автоматом слага"""
+    d = {
+        'а':'a', 'б':'b', 'в':'v', 'г':'g', 'д':'d', 'е':'e', 'ж':'zh', 'з':'z', 'и':'i',
+        'к':'k', 'л':'l', 'м':'m', 'н':'n', 'о':'o', 'п':'p', 'р':'r', 'с':'s', 'т':'t',
+        'у':'u', 'ф':'f', 'х':'h', 'ц':'c', 'ч':'ch','ш':'sch', 'щ':'schc', 'ы':'y', 'э':'r',
+        'ю':'yu', 'я':'ya'
+    }
+    return ''.join(map(lambda x: d[x] if d.get(x,False) else x, s.lower()))
 
 class PublishedManager(models.Manager):
     """класс создающий пользовательский менеджер, который будет
@@ -54,6 +65,11 @@ class Women(models.Model):
         """функция помогает выводить полностью посты,
          прописываем в index.html обязательно импортируем """
         return reverse('post', kwargs={'post_slug': self.slug})
+
+    # def save(self,*args,**kwargs):
+    #     """спец метод для сохранения слага по набору заголовка"""
+    #     self.slug = slugify(translit_to_eng(self.title))
+    #     super().save(*args, **kwargs)
 
 
 class Category(models.Model):
