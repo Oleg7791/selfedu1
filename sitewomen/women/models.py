@@ -25,6 +25,7 @@ class PublishedManager(models.Manager):
 
 
 class Women(models.Model):
+
     class Status(models.IntegerChoices):
         """спец класс для определения статуса опубликован или нет"""
         DRAFT = 0, 'Черновик'
@@ -55,7 +56,7 @@ class Women(models.Model):
 
     class Meta:
         verbose_name = "Известные женщины"  # Редактируем меняем название в админ панели
-        verbose_name_plural = "Известные женщины"  # тоже но чтобы и во множественном числе
+        verbose_name_plural = "Известные женщины"  # тоже, но чтобы и во множественном числе
         ordering = ['-time_create']
         indexes = [
             models.Index(fields=['-time_create'])
