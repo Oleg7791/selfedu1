@@ -51,8 +51,8 @@ def addpage(request):
     #  создаем экземпляр класса формы(в зависимости от разновидности запроса POST или GET
     if request.method == 'POST':
         form = AddPostForm(request.POST)
-        if form.is_valid():
-            #print(form.cleaned_data)
+        if form.is_valid():# метод "is_valid" проверяет на валидность(проверка всех параметров в форме)
+            # print(form.cleaned_data)
             # пропишем код для добавления данных созданного поста в базу данных
             try:
                 Women.objects.create(**form.cleaned_data)
