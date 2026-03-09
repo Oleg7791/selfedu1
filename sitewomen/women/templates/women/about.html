@@ -2,4 +2,12 @@
 
 {% block content %}
 <h1>{{title}}</h1>
+<form action="" method="post" enctype="multipart/form-data">
+<!--enctype="multipart/form-data" обязательный атрибут для загрузки файла на сервер-->
+    {% csrf_token %}
+<!--    <p><input type="file" name="file_upload"></p>-->
+    {{ form.as_p }}
+    <p><button type="submit">Отправить</button></p>
+
+</form>
 {% endblock %}
