@@ -53,12 +53,16 @@ def addpage(request):
         form = AddPostForm(request.POST)
         if form.is_valid():# метод "is_valid" проверяет на валидность(проверка всех параметров в форме)
             # print(form.cleaned_data)
+
             # пропишем код для добавления данных созданного поста в базу данных
-            try:
-                Women.objects.create(**form.cleaned_data)
-                return redirect('home')
-            except:
-                form.add_error(None,"Ошибка добавления поста")
+            # try:
+            #     Women.objects.create(**form.cleaned_data)
+            #     return redirect('home')
+            # except:
+            #     form.add_error(None,"Ошибка добавления поста")
+
+            form.save() # сохраняет всё в базу данных
+            return redirect('home')
     else:
         form = AddPostForm()
 
