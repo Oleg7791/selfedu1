@@ -32,21 +32,29 @@ class Women(models.Model):
         PUBLISHED = 1, 'Опубликованный'
 
     title = models.CharField(max_length=255, verbose_name='Заголовок')
-    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name='Slug')
+    slug = models.SlugField(max_length=255, unique=True, db_index=True,
+                            verbose_name='Slug')
+    # поле атрибут для загрузки фотографий 'photo', не забываем выполнять
+    # миграции после изменения модели
+    photo = models.ImageField(upload_to='photos/%Y/%m/%d/', default=None,
+                              blank=True, null=True, verbose_name='Фото')
     content = models.TextField(blank=True, verbose_name='Текст статьи')
     time_create = models.DateTimeField(auto_now_add=True, verbose_name='Время создания')
     time_update = models.DateTimeField(auto_now=True,verbose_name='Время изменения')
     is_published = models.BooleanField(choices=tuple(map(lambda x: (bool(x[0]), x[1]), Status.choices)),
                                                      default=Status.DRAFT, verbose_name='Статус')
     # создаем атрибут для связывания моделей Many to one(пост и категории)
-    cat = models.ForeignKey("Category", on_delete=models.PROTECT, related_name='posts',verbose_name='Категория')
+    cat = models.ForeignKey("Category", on_delete=models.PROTECT, related_name='posts',
+                            verbose_name='Категория')
     # создаем атрибут для связи Many to Many
-    tags = models.ManyToManyField('TagPost', blank=True, related_name='tags', verbose_name='Теги')
+    tags = models.ManyToManyField('TagPost', blank=True, related_name='tags',
+                                  verbose_name='Теги')
     # создаем атрибут для связи One to One (будет связывать женщин с их мужьями
     # параметр on_delete=models.SET_NULL отвечает если удалить мужа то значение примет Null,
     # blank=True - позволяет поле оставлять пустым, related_name='wuman'- атрибут для обратного связывания
     husband = models.OneToOneField('Husband', on_delete=models.SET_NULL,
-                                   null=True, blank=True, related_name='wuman', verbose_name='Муж')
+                                   null=True, blank=True, related_name='wuman',
+                                   verbose_name='Муж')
 
     objects = models.Manager() # стандартный менеджер
     published = PublishedManager()  # создание нового менеджера
@@ -118,3 +126,8 @@ class Husband(models.Model):
     def __str__(self):
         """метод будет возвращать имя name при обращении к модели"""
         return self.name
+
+class UploadFiles(models.Model):
+    """создаем модель для загрузки файлов"""
+    file = models.FileField(upload_to='uploads_model')# параметр "uploads_model" создает
+    # папку с выбранным параметром, не забываем применить миграцию

@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
 from .forms import AddPostForm, UploadFileForm
-from .models import Women, Category, TagPost
+from .models import Women, Category, TagPost, UploadFiles
 
 menu = [
     {'title':'О сайте','url_name':'about'},
@@ -29,19 +29,23 @@ def index(request):  # обязательный параметр request
     }
     return render(request, 'women/index.html', context=data)
 
-def handle_uploaded_file(f):
-    """функция взята из докум-ции django осуществляет загрузку файла, вставляется в about"""
-    with open(f"uploads/{f.name}", "wb+") as destination:
-        for chunk in f.chunks():
-            destination.write(chunk)
+# заменили в about классом из модели UploadFiles
+# def handle_uploaded_file(f):
+#     """функция взята из докум-ции django осуществляет загрузку файла, вставляется в about"""
+#     with open(f"uploads/{f.name}", "wb+") as destination:
+#         for chunk in f.chunks():
+#             destination.write(chunk)
 
 def about(request):
     """используем для загрузки файлов на сервер"""
     if request.method == 'POST':
         # handle_uploaded_file(request.FILES['file_upload'])# берётся из about.html (FILES['file_upload'])
-        form = UploadFileForm(request.POST, request.FILES)
+        form = UploadFileForm(request.POST, request.FILES) # требуется "request.FILES" для передачи файлов
         if form.is_valid():
-            handle_uploaded_file(form.cleaned_data['file'])# атрибут ['file'] берется из класса UploadFileForm
+            # перезапишем ф-ю  через модель handle_uploaded_file(form.cleaned_data['file'])
+            # атрибут ['file'] берется из класса UploadFileForm
+            fp = UploadFiles(file=form.cleaned_data['file']) #создаем экземпляр этого класса
+            fp.save() # сохраняем в БД
     else:
         form = UploadFileForm()
     return render(request, 'women/about.html',
@@ -64,7 +68,7 @@ def show_post(request, post_slug):
 def addpage(request):
     #  создаем экземпляр класса формы(в зависимости от разновидности запроса POST или GET
     if request.method == 'POST':
-        form = AddPostForm(request.POST)
+        form = AddPostForm(request.POST, request.FILES)# требуется "request.FILES" для передачи файлов
         if form.is_valid():# метод "is_valid" проверяет на валидность(проверка всех параметров в форме)
             # print(form.cleaned_data)
 

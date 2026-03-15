@@ -2,7 +2,8 @@
 
 {% block content %}
 <h1> {{title}}</h1>
-<form action="" method="post">
+<!-- если с формой будем передавать файлы обязательно добавляем параметр 'enctype ....'-->
+<form action="" method="post" enctype="multipart/form-data">
     {% csrf_token %}
 <!--     создаем form экземпляр в views.py-->
 <!--    {{ form.as_p }} стандартное изображение через метод(as_p) ниже опишем в ручную-->
