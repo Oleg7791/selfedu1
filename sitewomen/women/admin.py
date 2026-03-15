@@ -1,5 +1,7 @@
 from django.contrib import admin, messages
 from django.db.models.functions import Length
+from django.utils.safestring import mark_safe
+
 from .models import Women, Category
 
 
@@ -27,12 +29,13 @@ class MarriedFilter(admin.SimpleListFilter):
 # admin.site.register(Women, WomenAdmin) # добавили в декоратор
 class WomenAdmin(admin.ModelAdmin):
     """ класс для настройки отображения статей в админ панели Модель-Women"""
-    fields = ['title', 'slug', 'content', 'cat','husband','tags']  # атрибут список полей которые отображаются в форме редактирования
+    fields = ['title', 'slug', 'content', 'photo','post_photo', 'cat','husband','tags']  # атрибут список полей которые отображаются в форме редактирования
     #readonly_fields = ['slug']# атрибут позволяющий сделать отображаемое поле не редактируемым
+    readonly_fields = ['post_photo']
     prepopulated_fields = {'slug':('title',)}# атрибут используется для автоматического
     # заполнения поля слага, но должен быть не активен атрибут 'readonly_fields'
     filter_horizontal = ['tags']# атрибут добавляет виджет в виде табличек удобность
-    list_display = ('id', 'title', 'time_create', 'is_published', "cat", "brief_info")  # список отображаемых полей
+    list_display = ('id', 'title', 'post_photo', 'time_create', 'is_published', "cat", "brief_info")  # список отображаемых полей
     list_display_links = ('id', 'title')  # атрибут делает активными поля в админке
     ordering = ['time_create', 'title']  # атрибут список полей по которым сортируем
     list_editable = ('is_published',)  # атрибут определяющий список(кортеж) полей которые можно
@@ -46,6 +49,7 @@ class WomenAdmin(admin.ModelAdmin):
     """чтобы прописать поля из связанной таблицы используем двойное подчеркивание cat__name"""
     # атрибут для создания панели фильтрации
     list_filter = [MarriedFilter, 'cat__name', 'is_published']  # прописываем название класса чтобы
+    save_on_top = True # атрибут добавляет сверху панельку сохранить и т.д.
 
     # появился в панели фильтров MarriedFilter
 
@@ -55,6 +59,13 @@ class WomenAdmin(admin.ModelAdmin):
         """метод создает поле (в списке статей) админке, ее не будет в базе данных,
         добавим в list_display"""
         return f"Описание {len(women.content)} символов"
+
+    @admin.display(description="Изображение", ordering='content')
+    def post_photo(self,women:Women):
+        """метод для отображения маленького фото """
+        if women.photo:
+            return mark_safe(f"<img  src = '{women.photo.url}' width=50>")# функция mark_safe нужна чтоб тег img не экранировал
+        return "Без фото"
 
     @admin.action(description="Опубликовать выбранные записи")  # декоратор для перевода записи
     def set_published(self, request, queryset):

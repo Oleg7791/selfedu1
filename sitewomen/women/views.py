@@ -69,6 +69,7 @@ def addpage(request):
     #  создаем экземпляр класса формы(в зависимости от разновидности запроса POST или GET
     if request.method == 'POST':
         form = AddPostForm(request.POST, request.FILES)# требуется "request.FILES" для передачи файлов
+
         if form.is_valid():# метод "is_valid" проверяет на валидность(проверка всех параметров в форме)
             # print(form.cleaned_data)
 
