@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from dns.tsig import get_context
 
 from .forms import AddPostForm, UploadFileForm
@@ -70,19 +70,39 @@ def about(request):
     return render(request, 'women/about.html',
                   {'title': 'О сайте','menu':menu, 'form': form})
 
-def show_post(request, post_slug):
-    """представление показывает пост через слаг, если не нет
-     такого совпадения выводится 404 нет такой страницы"""
-    post = get_object_or_404(Women, slug=post_slug)
+# пропишем класс представления на замену функции
+# def show_post(request, post_slug):
+#     """представление показывает пост через слаг, если не нет
+#      такого совпадения выводится 404 нет такой страницы"""
+#     post = get_object_or_404(Women, slug=post_slug)
+#
+#     data = {
+#         'title': post.title,
+#         'menu': menu,
+#         'post': post,
+#         "cat_selected": 1,
+#     }
+#
+#     return render(request, 'women/post.html', data)
 
-    data = {
-        'title': post.title,
-        'menu': menu,
-        'post': post,
-        "cat_selected": 1,
-    }
+class ShowPost(DetailView):
+    """класс представления взамен функции show_post"""
+    model = Women
+    template_name = 'women/post.html'
+    context_object_name = 'post' # сюда нужно записать переменную из post.html
+    slug_url_kwarg = 'post_slug' # прописывается переменная из urls.py по которой берется статья
 
-    return render(request, 'women/post.html', data)
+    # def get_queryset(self):
+    #     return
+
+    def get_object(self, queryset = None):
+        return get_object_or_404(Women.published, slug=self.kwargs['post_slug'])
+
+    def get_context_data(self,**kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = context['post'].title
+        context['menu'] = menu
+        return context
 
 # заменим функцию addpage на класс AddPage
 # def addpage(request):
@@ -220,6 +240,8 @@ class ShowTagPostList(ListView):
          несколько ключ-значений."""
         context = super().get_context_data(**kwargs)
         tag = get_object_or_404(TagPost, slug=self.kwargs['tag_slug'])
+        print(self.kwargs)
+        print(tag)
         context['title'] = 'Посты с тегом - ' + tag.tag
         context['menu'] = menu
         context['cat_selected'] = 0
