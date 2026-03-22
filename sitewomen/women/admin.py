@@ -77,7 +77,8 @@ class WomenAdmin(admin.ModelAdmin):
     def set_draft(self, request, queryset):
         """ будем для выбора записей в разряд снятые с публикации"""
         count = queryset.update(is_published=Women.Status.DRAFT)  # count добавлен счетчик измененных записей
-        self.message_user(request, f"{count} записей снято с публикации!", messages.WARNING)
+        self.message_user(request, f"{count} записей снято с публикации!",
+                          messages.WARNING)
 
 
 # admin.site.register(Women, WomenAdmin) # добавили в декоратор
