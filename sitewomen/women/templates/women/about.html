@@ -2,12 +2,26 @@
 
 {% block content %}
 <h1>{{title}}</h1>
-<form action="" method="post" enctype="multipart/form-data">
+<!--<form action="" method="post" enctype="multipart/form-data">-->
 <!--enctype="multipart/form-data" обязательный атрибут для загрузки файла на сервер-->
-    {% csrf_token %}
+<!--    {% csrf_token %}-->
 <!--    <p><input type="file" name="file_upload"></p>-->
-    {{ form.as_p }}
-    <p><button type="submit">Отправить</button></p>
+<!--    {{ form.as_p }}-->
+<!--    <p><button type="submit">Отправить</button></p>-->
 
-</form>
+<!--</form>-->
+
+{% for item in page_obj %}
+<p>{{ item.pk }}: {{ item.title}}</p>
+{% endfor %}
+
+<nav>
+    <ul>
+        {% for p in page_obj.paginator.page_range %}
+        <li>
+            <a href="?page={{ p }}">{{ p }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</nav>
 {% endblock %}

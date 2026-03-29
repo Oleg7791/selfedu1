@@ -1,11 +1,13 @@
+from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 from django.views import View
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, DetailView, FormView, CreateView, UpdateView
 from dns.tsig import get_context
+from rest_framework.reverse import reverse_lazy
 
 from .forms import AddPostForm, UploadFileForm
 from .models import Women, Category, TagPost, UploadFiles
@@ -38,6 +40,7 @@ class WomenHome(ListView):
     template_name = 'women/index.html'
     context_object_name = 'posts' # атрибут присваивает "имя для шаблонов - в index.html"
     # в нашем случае для отображения списка статей
+    paginate_by = 2
     extra_context = {
         'title': 'Главная страница',
         'menu': menu,
@@ -56,19 +59,15 @@ class WomenHome(ListView):
 #             destination.write(chunk)
 
 def about(request):
-    """используем для загрузки файлов на сервер"""
-    if request.method == 'POST':
-        # handle_uploaded_file(request.FILES['file_upload'])# берётся из about.html (FILES['file_upload'])
-        form = UploadFileForm(request.POST, request.FILES) # требуется "request.FILES" для передачи файлов
-        if form.is_valid():
-            # перезапишем ф-ю  через модель handle_uploaded_file(form.cleaned_data['file'])
-            # атрибут ['file'] берется из класса UploadFileForm
-            fp = UploadFiles(file=form.cleaned_data['file']) #создаем экземпляр этого класса
-            fp.save() # сохраняем в БД
-    else:
-        form = UploadFileForm()
+    """создадим на базе этого метода, метод работы с пагинацией """
+    contact_list = Women.published.all()
+    paginator = Paginator(contact_list, 3)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'women/about.html',
-                  {'title': 'О сайте','menu':menu, 'form': form})
+                  {'title':'О сайте', 'page_obj':page_obj})
 
 # пропишем класс представления на замену функции
 # def show_post(request, post_slug):
@@ -133,32 +132,66 @@ class ShowPost(DetailView):
     # """отображает вызов страницы "добавление статьи" """
     # return render(request, 'women/addpage.html', data)
 
-class AddPage(View):
-    """Создаем класс "представления" взамен функции addpage """
-    def get(self, request):
-        form = AddPostForm()
-        data = {
-            'menu': menu,
-            'title': "Добавление статьи",
-            'form': form
-        }
-        """отображает вызов страницы "добавление статьи" """
-        return render(request, 'women/addpage.html', data)
+# class AddPage(View):
+#     """Создаем класс "представления" взамен функции addpage """
+#     def get(self, request):
+#         form = AddPostForm()
+#         data = {
+#             'menu': menu,
+#             'title': "Добавление статьи",
+#             'form': form
+#         }
+#         """отображает вызов страницы "добавление статьи" """
+#         return render(request, 'women/addpage.html', data)
+#
+#
+#     def post(self, request):
+#         form = AddPostForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('home')
+#         data = {
+#             'menu': menu,
+#             'title': "Добавление статьи",
+#             'form': form
+#         }
+#         """отображает вызов страницы "добавление статьи" """
+#         return render(request, 'women/addpage.html', data)
 
+# class AddPage(FormView):
+#     """заменим прошлый класс AddPage на новый через класс FormView"""
+#     form_class = AddPostForm
+#     template_name = 'women/addpage.html'
+#     success_url = reverse_lazy('home')
+#     extra_context = {
+#         'menu': menu,
+#         'title': 'Добавление статьи',
+#     }
+#
+#     def form_valid(self, form):
+#         form.save()
+#         return super().form_valid(form)
 
-    def post(self, request):
-        form = AddPostForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-        data = {
-            'menu': menu,
-            'title': "Добавление статьи",
-            'form': form
-        }
-        """отображает вызов страницы "добавление статьи" """
-        return render(request, 'women/addpage.html', data)
+class AddPage(CreateView):
+    """ещё один вариант класса представления через класс CreateView"""
+    form_class = AddPostForm
+    template_name = 'women/addpage.html'
+    success_url = reverse_lazy('home')
+    extra_context = {
+        'menu': menu,
+        'title': 'Добавление статьи',
+    }
 
+class UpdatePage(UpdateView):
+    """класс представления для обновления поста"""
+    model = Women
+    fields = ['title','content', 'photo', 'is_published', 'cat']
+    template_name = 'women/addpage.html'
+    success_url = reverse_lazy('home')
+    extra_context = {
+        'menu': menu,
+        'title': 'Редактирование статьи',
+    }
 
 def contact(request):
     return HttpResponse("Обратная связь")
@@ -186,6 +219,7 @@ class WomenCategory(ListView):
     """класс представления - замена функции show_category"""
     template_name = 'women/index.html'
     context_object_name = 'posts'
+    paginate_by = 2
     allow_empty = False # атрибут генерирует сообщение 404 при пустом списке('posts')
 
     def get_queryset(self):

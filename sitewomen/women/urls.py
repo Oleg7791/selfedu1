@@ -21,5 +21,6 @@ urlpatterns = [
     path('category/<slug:cat_slug>/', views.WomenCategory.as_view(), name='category'),
     # маршрут для отображения тэгов
     #path('tag/<slug:tag_slug>/', views.show_tag_postlist, name='tag')-- ниже замена на класс,
-    path('tag/<slug:tag_slug>/', views.ShowTagPostList.as_view(), name='tag')
+    path('tag/<slug:tag_slug>/', views.ShowTagPostList.as_view(), name='tag'),
+    path('edit/<slug:slug>/', views.UpdatePage.as_view(), name='edit_page'),
 ]
