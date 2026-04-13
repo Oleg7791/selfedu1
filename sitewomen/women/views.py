@@ -1,3 +1,5 @@
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
@@ -58,6 +60,8 @@ class WomenHome(ListView):
 #         for chunk in f.chunks():
 #             destination.write(chunk)
 
+@login_required # декоратор запрещающий открывать страницы не
+# авторизованным пользователям, обязательно прописать в settings.py "LOGIN_URL = 'users:login'"
 def about(request):
     """создадим на базе этого метода, метод работы с пагинацией """
     contact_list = Women.published.all()
@@ -172,8 +176,10 @@ class ShowPost(DetailView):
 #         form.save()
 #         return super().form_valid(form)
 
-class AddPage(CreateView):
+class AddPage(LoginRequiredMixin,CreateView):
     """ещё один вариант класса представления через класс CreateView"""
+    """ добавляем класс LoginRequiredMixin для ограничения 
+    входа не авторизованным пользователям"""
     form_class = AddPostForm
     template_name = 'women/addpage.html'
     success_url = reverse_lazy('home')
@@ -181,6 +187,11 @@ class AddPage(CreateView):
         'menu': menu,
         'title': 'Добавление статьи',
     }
+
+    def form_valid(self, form):
+        w = form.save(commit=False)
+        w.author = self.request.user
+        return super().form_valid(form)
 
 class UpdatePage(UpdateView):
     """класс представления для обновления поста"""
