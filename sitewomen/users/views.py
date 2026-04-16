@@ -5,7 +5,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 
-from users.forms import LoginUserForm
+from users.forms import LoginUserForm, RegisterUserForm
+
 
 # ниже напишем стандартный класс Авторизации взамен функции
 # def login_user(request):
@@ -39,3 +40,18 @@ class LoginUser(LoginView):
 # def logout_user(request):
 #     logout(request)
 #     return HttpResponseRedirect(reverse('users:login'))
+
+def register(request):
+    """представление для вывода формы регистрации"""
+    if request.method == 'POST':
+        form = RegisterUserForm(request.POST) # 'экземпляр формы
+        if form.is_valid():
+            user = form.save(commit=False)# сохраняет в переменную без внесения в БД
+            user.set_password(form.cleaned_data['password'])# метод set_password шифрует
+            # пароль полученный из forms.pt
+            user.save() # сохраняет в БД
+            return render(request, 'users/register_done.html')
+    else:
+        form = RegisterUserForm()
+    return render(request, 'users/register.html', {'form':form})
+    # связываем с шаблоном URl в urls.py
