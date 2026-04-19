@@ -10,6 +10,7 @@ urlpatterns = [
     #path('logout/', views.logout_user, name='logout'),# для функции
     path('logout/',LogoutView.as_view(), name='logout'),# для класса
     #path('register/', views.register, name='register')
-    path('register/', views.RegisterUser.as_view(), name='register')
+    path('register/', views.RegisterUser.as_view(), name='register'),
+    path('profile/', views.ProfileUser.as_view(), name='profile'),
 ]
 
