@@ -14,7 +14,8 @@ from pathlib import Path
 from telnetlib import AUTHENTICATION
 
 from django.conf.global_settings import MEDIA_ROOT, STATICFILES_DIRS, MEDIA_URL, LOGIN_REDIRECT_URL, \
-    LOGOUT_REDIRECT_URL, AUTHENTICATION_BACKENDS
+    LOGOUT_REDIRECT_URL, AUTHENTICATION_BACKENDS, EMAIL_HOST_PASSWORD, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_USE_SSL, \
+    DEFAULT_FROM_EMAIL, SERVER_EMAIL
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -153,3 +154,15 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'users.authentication.EmailAuthBackend',
 ]
+
+#EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+EMAIL_HOST = "smtp.yandex.ru"
+EMAIL_PORT = 465
+EMAIL_HOST_USER = "o1egov77@yandex.ru"
+EMAIL_HOST_PASSWORD = "unxbciypmtjaoyis"
+EMAIL_USE_SSL = True
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+SERVER_EMAIL = EMAIL_HOST_USER
+EMAIL_ADMIN = EMAIL_HOST_USER
