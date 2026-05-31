@@ -3,7 +3,7 @@ from django.core.validators import MinLengthValidator, MaxLengthValidator
 from django.utils.deconstruct import deconstructible
 from django.core.exceptions import ValidationError
 
-from .models import Category, Husband, Women
+from .models import Category, Husband, Women, Profile
 
 
 @deconstructible
@@ -88,3 +88,22 @@ class UploadFileForm(forms.Form):
     """класс формы для загрузки файлов,
     не связан с Моделью"""
     file = forms.ImageField(label="Файл")
+
+
+class ProfileForm(forms.ModelForm):
+    """Форма для редактирования профиля"""
+
+    class Meta:
+        model = Profile
+        fields = ['phone', 'birth_date', 'avatar', 'bio', 'telegram', 'github']
+        widgets = {
+            'birth_date': forms.DateInput(attrs={'type': 'date'}),
+            'bio': forms.Textarea(attrs={'rows': 5}),
+        }
+
+    def clean_phone(self):
+        """Валидация телефона"""
+        phone = self.cleaned_data.get('phone')
+        if phone and not phone.isdigit():
+            raise forms.ValidationError('Телефон должен содержать только цифры')
+        return phone

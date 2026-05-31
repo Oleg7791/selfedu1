@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models.fields import CharField
 from django.template.defaultfilters import slugify
 from django.urls import reverse
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 def translit_to_eng(s: str):
     """специальная функция Костыль для преобразования латиницы в кириллицу
@@ -135,3 +137,106 @@ class UploadFiles(models.Model):
     """создаем модель для загрузки файлов"""
     file = models.FileField(upload_to='uploads_model')# параметр "uploads_model" создает
     # папку с выбранным параметром, не забываем применить миграцию
+
+
+User = get_user_model()
+
+
+class Profile(models.Model):
+    """Расширение модели User через One-to-One связь"""
+
+    # Связь один-к-одному с моделью User
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='profile',  # Для доступа user.profile
+        verbose_name='Пользователь'
+    )
+
+    # Дополнительные поля для расширения
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name='Телефон'
+    )
+
+    birth_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name='Дата рождения'
+    )
+
+    avatar = models.ImageField(
+        upload_to='avatars/%Y/%m/%d/',
+        blank=True,
+        null=True,
+        verbose_name='Аватар'
+    )
+
+    bio = models.TextField(
+        max_length=500,
+        blank=True,
+        verbose_name='О себе'
+    )
+
+    # Социальные сети
+    telegram = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='Telegram'
+    )
+
+    github = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name='GitHub'
+    )
+
+    # Служебные поля
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата создания'
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name='Дата обновления'
+    )
+
+    class Meta:
+        verbose_name = 'Профиль'
+        verbose_name_plural = 'Профили'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Профиль пользователя {self.user.username}'
+
+    def get_full_info(self):
+        """Метод для получения полной информации о пользователе"""
+        info = {
+            'username': self.user.username,
+            'email': self.user.email,
+            'phone': self.phone,
+            'birth_date': self.birth_date,
+            'bio': self.bio,
+        }
+        return info
+
+
+# Сигналы для автоматического создания профиля при регистрации
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """Создает профиль при создании нового пользователя"""
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """Сохраняет профиль при сохранении пользователя"""
+    # Проверяем, есть ли профиль, если нет - создаем
+    if not hasattr(instance, 'profile'):
+        Profile.objects.create(user=instance)
+    else:
+        instance.profile.save()

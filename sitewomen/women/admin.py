@@ -1,6 +1,10 @@
 from django.contrib import admin, messages
 from django.db.models.functions import Length
 from django.utils.safestring import mark_safe
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth import get_user_model
+from .models import Profile
+
 
 from .models import Women, Category
 
@@ -88,3 +92,98 @@ class CategoryAdmin(admin.ModelAdmin):
     """ класс для настройки отображения Модели -Категории в админ панели"""
     list_display = ('id', 'name')  # список отображаемых полей
     list_display_links = ('id', 'name')  # атрибут делает активными поля в админке
+
+
+User = get_user_model()
+
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = 'Профиль'
+
+    # Поля профиля, которые будут отображаться
+    fields = ('phone', 'birth_date', 'avatar', 'bio', 'telegram', 'github')
+
+    # Если нужно сделать некоторые поля только для чтения
+    readonly_fields = ('created_at', 'updated_at')
+
+
+class CustomUserAdmin(BaseUserAdmin):
+    """Расширяем стандартного UserAdmin"""
+
+    # Встраиваем профиль
+    inlines = [ProfileInline]
+
+    # Поля в списке пользователей
+    list_display = ('username', 'email', 'first_name', 'last_name', 'get_phone', 'is_staff', 'is_active')
+
+    # Поля для поиска (включая поля профиля)
+    search_fields = ('username', 'email', 'first_name', 'last_name', 'profile__phone')
+
+    # Фильтры
+    list_filter = ('is_staff', 'is_active', 'date_joined')
+
+    # Поля, доступные только для чтения
+    readonly_fields = ('last_login', 'date_joined')
+
+    # Метод для отображения телефона из профиля в списке
+    def get_phone(self, obj):
+        """Возвращает номер телефона из профиля"""
+        if hasattr(obj, 'profile') and obj.profile:
+            return obj.profile.phone
+        return '-'
+
+    get_phone.short_description = 'Телефон'
+    get_phone.admin_order_field = 'profile__phone'  # Для сортировки
+
+    # Дополнительное поле для отображения на странице редактирования
+    def profile_phone(self, obj):
+        """Отображает телефон на странице редактирования"""
+        if hasattr(obj, 'profile') and obj.profile:
+            return obj.profile.phone
+        return '-'
+
+    profile_phone.short_description = 'Телефон'
+
+    # Добавляем профиль_фон в read only поля
+    readonly_fields = BaseUserAdmin.readonly_fields + ('profile_phone',)
+
+    # Организация полей на странице редактирования
+    fieldsets = BaseUserAdmin.fieldsets + (
+        ('Информация из профиля', {
+            'fields': ('profile_phone',),
+            'classes': ('collapse',),
+        }),
+    )
+
+
+# Перерегистрируем модель User
+admin.site.unregister(User)
+admin.site.register(User, CustomUserAdmin)
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    """Админка для модели Profile"""
+    list_display = ('user', 'phone', 'birth_date', 'created_at')
+    list_filter = ('created_at', 'birth_date')
+    search_fields = ('user__username', 'user__email', 'phone')
+    raw_id_fields = ('user',)
+    readonly_fields = ('created_at', 'updated_at')
+
+    fieldsets = (
+        ('Пользователь', {
+            'fields': ('user',)
+        }),
+        ('Контактные данные', {
+            'fields': ('phone', 'telegram', 'github')
+        }),
+        ('Личная информация', {
+            'fields': ('birth_date', 'avatar', 'bio')
+        }),
+        ('Служебная информация', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )

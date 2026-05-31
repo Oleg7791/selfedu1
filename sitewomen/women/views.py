@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,6 +10,9 @@ from django.views import View
 from django.views.generic import ListView, DetailView, FormView, CreateView, UpdateView
 from dns.tsig import get_context
 from rest_framework.reverse import reverse_lazy
+from django.contrib.auth.decorators import login_required
+from .models import Profile
+from .forms import ProfileForm
 
 from .forms import AddPostForm, UploadFileForm
 from .models import Women, Category, TagPost, UploadFiles
@@ -176,7 +179,7 @@ class ShowPost(DetailView):
 #         form.save()
 #         return super().form_valid(form)
 
-class AddPage(LoginRequiredMixin,CreateView):
+class AddPage(PermissionRequiredMixin, LoginRequiredMixin,CreateView):
     """ещё один вариант класса представления через класс CreateView"""
     """ добавляем класс LoginRequiredMixin для ограничения 
     входа не авторизованным пользователям"""
@@ -187,6 +190,9 @@ class AddPage(LoginRequiredMixin,CreateView):
         'menu': menu,
         'title': 'Добавление статьи',
     }
+    # прописываем разрешение для доступа к этой странице
+    # формат <имя приложения>.<вид действия>-<имя таблицы>
+    permission_required = 'women.add-women'
 
     def form_valid(self, form):
         w = form.save(commit=False)
@@ -291,3 +297,32 @@ class ShowTagPostList(ListView):
         context['menu'] = menu
         context['cat_selected'] = 0
         return context
+
+
+@login_required
+def profile_view(request):
+    """Отображение профиля пользователя"""
+    profile = request.user.profile  # Доступ через related_name='profile'
+    context = {
+        'profile': profile,
+    }
+    return render(request, 'users/profile.html', context)
+
+
+@login_required
+def profile_edit(request):
+    """Редактирование профиля"""
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = ProfileForm(instance=profile)
+
+    context = {
+        'form': form,
+    }
+    return render(request, 'users/profile_edit.html', context)
